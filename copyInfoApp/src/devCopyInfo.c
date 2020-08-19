@@ -13,8 +13,7 @@
 /* must be last include */
 #include "epicsExport.h"
 
-static long read_wf(waveformRecord *prec) {
-    char * buf = prec->bptr;
+static long init_record(waveformRecord *prec) {
     DBENTRY *pdbentry = dbAllocEntry(pdbbase);
     int status = dbFindRecord(pdbentry, prec->name);
     if (status) {
@@ -26,15 +25,21 @@ static long read_wf(waveformRecord *prec) {
 	printf("Can't find info(copyInfo, ...) for record '%s'\n", prec->name);
 	return -1;
     }
+    // free the previously allocated bptr and replace it with the info ptr
+    free(prec->bptr);
+    prec->bptr = infoStr;
+    prec->ftvl = DBF_UCHAR;
     size_t N = strlen(infoStr) + 1;  // include the NULL
-    if (N > prec->nelm)
-        N = prec->nelm;
+    prec->nelm = N;
     prec->nord = N;
-    memcpy(buf, infoStr, N);
     return 0;
 }
 
-// Declare this here to support R3.14
+static long read_wf(waveformRecord *prec) {
+    // Do nothing as we already have initialized it above
+    return 0;
+}
+
 static struct {
     long number;
     long (*dev_report)(int);
@@ -43,6 +48,6 @@ static struct {
     long (*get_ioint_info)(int, dbCommon *, IOSCANPVT *);
     long (*read_wf)(waveformRecord *);
 } devCopyInfo = {
-    5, NULL, NULL, NULL, NULL, read_wf
+    5, NULL, NULL, init_record, NULL, read_wf
 };
 epicsExportAddress(dset,devCopyInfo);

@@ -1,8 +1,5 @@
 record(waveform, "TEST") {
     field(DTYP, "copyInfo")
-    field(FTVL, "UCHAR")
-    field(NELM, "6000")
-    field(PINI, "YES")
     info(copyInfo, {
         This: "\"is\" JSON,",
         and: ["it", seems, to, "work fine"]
